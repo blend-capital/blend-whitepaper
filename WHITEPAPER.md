@@ -16,7 +16,7 @@ Blend represents a new, more primitive approach to decentralized money market pr
 
 ### System Diagram
 
-![Diagram](https://github.com/blend-capital/blend-whitepaper/blob/main/images/Blend%20System%20Overview.png)
+![Diagram](./assets/system_overview.png)
 
 ### Isolated Lending Pools
 
@@ -113,7 +113,7 @@ $RM$ = Rate modifier\
 $U$ = Utilization ratio\
 $R_{base}$ = Base protocol interest rate (0.01)
 
-![IR Graph](https://github.com/blend-capital/blend-whitepaper/blob/main/images/Blend%20IR.png)
+![IR Graph](./assets/interest_rate_model.png)
 
 _Figure 1: Interest rate curve examples for various asset classes where low curve has (UT=0.9, R1=0.03, R2=0.2, R3=1), medium curve has (UT=0.75, R1=0.05, R2=0.5, R3=1.5), high curve has (UT=0.6, R1=0.07, R2=1, R3=2), and the Rate Modifier is 1._
 
