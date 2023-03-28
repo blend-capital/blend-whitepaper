@@ -2,13 +2,13 @@
 
 ## Abstract
 
-This paper introduces the first decentralized money market primitive, Blend. A money market primitive enables the permissionless creation of lending markets to quickly respond to emerging market needs. Applications, industries, and users can utilize this primitive to create isolated lending pools that best serve their niche. Blend is an ungoverned, modular, money market primitive that does not compromise on security or capital efficiency.
+This paper introduces a universal liquidity protocol primitive, Blend. A liquidity protocol primitive enables the permissionless creation of lending pools to quickly respond to emerging market needs. Applications, industries, and users can utilize this primitive to create isolated lending pools that best serve their niche. Blend is an ungoverned, modular, liquidity protocol primitive that does not compromise on security or capital efficiency.
 
 ## Introduction
 
-Decentralized money markets act as a cornerstone for healthy crypto-economic systems. They trustlessly facilitate the flow of capital to wherever it is most efficient, increasing capital efficiency and generating interest along the way. Aave and Compound prove how valuable these products are with their success in the Ethereum ecosystem. Since their inception during the early stages of decentralized finance (DeFi), they quickly became two of the industry’s largest and most used DeFi protocols. Aave remains one of the largest, peaking at approximately $30 billion in liquidity [1].
+Decentralized money markets act as a cornerstone for healthy crypto-economic systems. They trustlessly facilitate the flow of capital to wherever it is most productive, increasing capital efficiency and generating interest along the way. Aave and Compound prove these products' value with their success in the Ethereum ecosystem. Since their inception during the early stages of decentralized finance (DeFi), they quickly became two of the industry’s largest and most used DeFi protocols. Aave remains one of the largest, peaking at approximately $30 billion in liquidity [[1](https://github.com/aave/aave-v3-core/blob/master/techpaper/Aave_V3_Technical_Paper.pdf)].
 
-Despite their usefulness, current money markets fall short in terms of flexibility. Users want to utilize a wide range of their crypto assets in money markets. However, supporting risky assets, especially as collateral, can put protocol funds at risk. Aave and Compound forgo flexibility and have extensive governance systems that ensure any asset meets well-defined criteria before adding it to their markets [2, 3]. Other protocols like Euler and Rari have novel approaches for managing permissionless listings that segment asset risk [4]. Unfortunately, these approaches can lead to liquidity fragmentation and low capital utilization.
+Despite their usefulness, current money markets fall short in terms of flexibility. Users want to utilize a wide range of their crypto assets in money markets. However, supporting risky assets, especially as collateral, can put protocol funds at risk. Aave and Compound forgo flexibility and have extensive governance systems that ensure any asset meets well-defined criteria before adding it to their markets [[2](https://medium.com/gauntlet-networks/gauntlets-parameter-recommendation-methodology-8591478a0c1c), [3](https://docs.aave.com/risk/asset-risk/introduction)]. Other protocols like Euler and Rari have novel approaches for managing permissionless listings that segment asset risk [[4](https://docs.euler.finance/getting-started/white-paper#permissionless-listing)]. Unfortunately, these approaches can lead to liquidity fragmentation and low capital utilization.
 
 Blend represents a new, more primitive approach to decentralized money market protocols. It enables the permissionless creation of isolated lending pools, ensuring maximum flexibility and accessibility. Blend avoids the normal pitfalls of permissionless lending markets by using a market-driven backstop system to curate pools, ensuring appropriate risk levels, and using a dynamic interest rate model to preserve capital efficiency.
 
@@ -52,21 +52,13 @@ In exchange for insuring pools, backstop module depositors receive a portion of 
 
 #### Covering Bad Debt
 
-Pool backstop modules act as first-loss capital by assuming any bad debt the pool takes on, using the pool’s backstop deposits as collateral. Backstop module deposits have a global collateral factor of 0.8. If a backstop module assumes too much bad debt for its deposits to collateralize, the backstop module can be liquidated. Any remaining bad debt is socialized among lenders if backstop module deposits are insufficient to complete the liquidation.
-
-#### Repaying Bad Debt
-
-When a backstop module has taken on bad debt, it attempts to repay it using the interest that would normally be distributed to backstop module depositors. The backstop module will accrue interest to a bad debt repayment fund, and at any point any entity may choose to repay all bad debt accrued by the backstop module in exchange for the accrued interest.
-
-#### Self Liquidation
-
-There is a possible scenario where a pool is effectively abandoned but still has bad debt. This circumstance obstructs all backstop module withdrawals as withdrawals cannot be completed while the backstop is indebted. However, since the pool has been abandoned (all lenders and borrowers have withdrawn funds), it will be impossible for backstop module depositors to generate enough interest to repay the bad debt. To prevent this stalemate, the backstop module includes a function that initiates a liquidation auction for the backstop module if 70% of backstop deposits have completed their withdrawal queue and are waiting to be withdrawn.
+Pool backstop modules act as first-loss capital by paying off any bad debt the pool takes on. If a user has bad debt it’s transferred to the backstop module, which auctions off it’s holdings to pay it off. Any remaining bad debt is socialized among lenders if backstop module deposits are insufficient to cover it.
 
 ### Lending and Borrowing
 
 #### Lending Assets
 
-Any asset supported by a given pool can be deposited into that pool. A deposit is represented by an ERC-20 token, or bToken, which entitles the holder to a share of the total deposited assets (similar to Compound’s cTokens [5]).
+Any asset supported by a given pool can be deposited into that pool. A deposit is represented by an ERC-20 token, or bToken, which entitles the holder to a share of the total deposited assets (similar to Compound’s cTokens [[5](https://compound.finance/docs/ctokens)]).
 
 The lender receives bTokens for depositing amount of an asset based on the following exchange rate:\
 
@@ -96,13 +88,17 @@ $Borrow Limit = \sum(PositionValue_{collateral} * AssetFactor_{collateral}) -\su
 
 Supporting both a collateral and liability factor gives pool creators a large amount of flexibility regarding the level of leverage they permit for different positions. For example, if a pool creator wants to support high leverage for fiat borrows collateralized with fiat, but not crypto borrows collateralized with fiat, they can set all fiat collateral and liability factors to 0.98 and crypto collateral and liability factors to 0.765. This would give fiat borrowers using fiat as collateral up to 25x leverage, but crypto borrowers using fiat as collateral only up to 4x leverage. This level of flexibility is not possible using only collateral factors.
 
+#### Utilization Caps
+
+To protect lenders from oracle instability or collateral asset exploits (infinite mints of a bridge asset etc.), pool creators can add utilization caps to assets primarily meant to be collateral assets. These caps prevent the asset from being borrowed above a certain utilization level. This safety feature, combined with backstop module first-loss capital, keeps lenders safe even in worst-case scenarios.
+
 ### Interest Rates
 
 Each pool algorithmically sets each of its assets’ interest rates based on each asset’s utilization ratio. The interest rate adjusts dynamically to stabilize the utilization to a constant target utilization ratio. The utilization ratio of an asset is defined by:
 
 $U=1- \frac{Balance_{Pool}}{bTokenTotalSupply * bTokenRate}$
 
-Each asset in the pool defines a target utilization rate and three initial interest rates: at the target utilization ratio (UT), 95% utilization ratio, and 100% utilization ratio. The initial rates are used to calculate three slope values R1, R2, and R3. These values define an interest rate model, similar to Aave’s[6], but with three distinct legs:
+Each asset in the pool defines a target utilization rate and three initial interest rates: at the target utilization ratio (UT), 95% utilization ratio, and 100% utilization ratio. The initial rates are used to calculate three slope values R1, R2, and R3. These values define an interest rate model, similar to Aave’s[[6](https://github.com/aave/aave-protocol/blob/master/docs/Aave_Protocol_Whitepaper_v1_0.pdf)], but with three distinct legs:
 
 $IR = RM*(R_{base}+\frac{U}{U_T}R1)$, where $U\underline{<}U_T$
 
@@ -144,13 +140,31 @@ Blend uses gentle dutch auctions to liquidate borrowers without overpenalizing t
 
 #### Auction Initiation
 
-Any user can initiate a liquidation auction on an account which has exceeded its borrow capacity for a pool. The specific positions involved in the auction are the user’s largest collateral position in the pool and their largest liability position in the pool. Limiting auctions to two positions simplifies auctions for liquidators and removes potential auction manipulation vectors. The downside is multiple auctions may be required to fully liquidate some users.
+Any user can initiate a liquidation auction on an account that has exceeded its borrow capacity for a pool. Liquidation initiators choose user collateral to auction off, and user liabilities to and amounts involved in the liquidation.
+
+However, the protocol imposes the following requirements on the liquidator:
+
+1. The value of liabilities repaid must be less than a calculated _Target Liquidation Amount_
+
+2. If all user liabilities are not being repaid, the value of all liabilities repaid must be greater than 90% of the _Target Liquidation Amount_
+
+**Target Liquidation Amount Formula:**
+
+$\frac{\frac{1.02*L}{\overline{O}}-C*\overline{K}}{\frac{1.02}{O}-\frac{2K}{1+OK}}$
+
+**Where:**\
+$L$ = Total value of the user’s liability positions in the lending pool\
+$O$ = Liability Factor of the liability being repaid by the liquidator\
+$\overline{O}$ = Average Liability Factor of the user’s liability positions in the lending pool\
+$C$ = Total value of the user’s collateral positions in the lending pool\
+$K$ = Collateral Factor of the collateral being auctioned\
+$\overline{K}$ = Average Collateral Factor of all the user’s collateral positions in the lending pool
 
 #### Auction Duration
 
-After the auction initiation, an Ask Modifier value begins scaling from zero to one based on how much time has passed since initiation. This value governs the percent of the user’s collateral position the liquidator will receive upon filling the auction (1.00 being 100% of the position). Once the Ask Modifier reaches one, a Bid Modifier value begins decreasing from one to zero. The Bid Modifier governs what percentage of the Target Liquidation Amount the liquidator must provide when they fill the auction (1.00 being 100%).
+After the auction initiation, a Lot Modifier value begins scaling from zero to one based on how much time has passed since initiation. This value governs the percent of the auctioned user’s collateral the liquidator will receive upon filling the auction (1.00 being 100%). Once the Lot Modifier reaches one, a Bid Modifier value begins decreasing from one to zero. The Bid Modifier governs what percentage of the input liability amount the liquidator must repay when they fill the auction (1.00 being 100%).
 
-**Ask Modifier Formula:**\
+**Lot Modifier Formula:**\
 $⌊ \frac{b_c-b_i}{2}⌋\in b_c \underline{<}200$\
 $1 \in b_c> 200$
 
@@ -164,24 +178,11 @@ $b_c$ = Current block
 
 #### Auction Fill
 
-At any point, a liquidator can fill the auction and repay a portion of the user’s liability in exchange for a portion of their collateral. The amount of the user’s liability which must be repaid is the Target Liquidation Amount. It is calculated when the auction is filled using the formula below. If the calculated amount is larger than the liability position associated with the auction, the full liability position is treated as the target liquidation amount.
-
-**Target Liquidation Amount Formula:**
-
-$B*\frac{\frac{1.02*L}{\overline{O}}-C*\overline{K}}{\frac{1.02}{O}-/frac{2K}{1+OK}}$
-
-Where:\
-$B = Bid modifier\
-$L$ = Total value of the user’s liability positions in the lending pool\
-$O$ = Liability Factor of the liability being repaid by the liquidator\
-$\overline{O}$ = Average Liability Factor of the user’s liability positions in the lending pool\
-$C$ = Total value of the user’s collateral positions in the lending pool\
-$K$ = Collateral Factor of the collateral being auctioned\
-$\overline{K}$ = Average Collateral Factor of all the user’s collateral positions in the lending pool
+At any point, a liquidator can fill the auction and repay the Bid Modifier adjusted auction liability in exchange for the Lot Modifier adjusted auctioned collateral.
 
 ### Price Oracles
 
-Price oracles are used extensively for determining if a borrower’s outstanding and potential liabilities are sufficiently collateralized or not. Each isolated lending pool specifies a price oracle to use on creation. The pool creator can select any deployed oracle contract as long as the oracle implements the expected BlendOracle trait, and all assets supported by the pool can fetch USD-denominated prices from the oracle.\
+Price oracles are used extensively to determine whether a borrower’s outstanding and potential liabilities are sufficiently collateralized. Each isolated lending pool specifies a price oracle to use on creation. The pool creator can select any deployed oracle contract as long as the oracle implements the expected BlendOracle trait, and all assets supported by the pool can fetch USD-denominated prices from the oracle.
 
 ## Governance and Decentralization
 
@@ -215,11 +216,11 @@ In the case of owned pools, the pool owner can set their pool to on ice or froze
 
 #### Backstop Threshold
 
-The backstop deposit threshold required to activate pools is 1.5 million BLND tokens. Each BLND token in BLND:USDC liquidity pool token deposits count as two tokens toward this threshold. BLND-only deposits count as 0.5 tokens. The reason for this varied weight is because pure BLND tokens are not as effective at insuring the pool as BLND:USDC liquidity pool tokens are.
+The backstop deposit threshold required to activate pools is 1 million BLND tokens. BLND:USDC liquidity pool token deposits count as the number of BLND tokens within them toward this threshold.
 
 #### Pool Migration
 
-Due to the immutable nature of standard isolated lending pools, if new parameters are required, a new pool must be deployed, and users must be migrated to it. Migrations are especially urgent if the old pool is using an oracle contract that is being shut down. To migrate users, someone first needs to create the new pool, then inform the backstop module depositors of the old pool what the new pool is and why they should migrate. Since an outdated parameter could jeopardize backstop module deposits, depositors should be more than happy to migrate. Once they begin the migration process by queueing their deposits for withdrawal, the pool can be turned off using pool management functions. This will force lenders and borrowers to migrate to the new pool to continue their operations.
+Due to the immutable nature of standard isolated lending pools, if new parameters are required, a new pool must be deployed, and users must be migrated to it. Migrations are especially urgent if the old pool is using an oracle contract that is being shut down. To migrate users, someone first needs to create the new pool, then inform the backstop module depositors of the old pool what the new pool is, and why they should migrate. Since an outdated parameter could jeopardize backstop module deposits, depositors should be more than happy to migrate. Once they begin the migration process by queueing their deposits for withdrawal, the pool can be turned off using pool management functions. This will force lenders and borrowers to migrate to the new pool to continue their operations.
 
 ### BLND Emissions
 
@@ -239,15 +240,15 @@ The protocol sending emissions to pool borrowers creates a necessary correlation
 
 #### Emission Migration
 
-The emission contract is not upgradeable, and is only responsible for minted 500,000 BLND tokens a week. Thus, all protocol logic regarding emissions distribution is the responsibility of the backstop module. In the event a new version of the protocol is released, the emission contract comes with an upgrade function that will redirect emissions from the old backstop module to the new contract. The upgrade function will only change the emission destination if, according to the backstop threshold accounting method, the new contract has a larger backstop size than the current backstop module. Thus, the new contract needs to convince the current backstop module depositors to migrate.
+The emission contract is not upgradeable, and is only responsible for minting 1 BLND per second. Thus, all protocol logic regarding emissions distribution is the responsibility of the backstop module. In the event a new version of the protocol is released, the emission contract has an upgrade function that will redirect emissions from the old backstop module to the new contract. The upgrade function will only change the emission destination if the new contract has more BLND than the current backstop module. Thus, the new contract needs to convince the current backstop module depositors to migrate.
 
-In the event a new backstop module contract is set, all currently existing pools will no longer receive emissions until they perform a backstop module update. After this is completed, the new backstop module assumes the responsibility of first-loss capital and the pool will function as expected.
+In the event a new backstop module contract is set, all currently existing pools will no longer receive emissions until they perform a backstop module update. After this is completed, the new backstop module assumes the responsibility of first-loss capital and the pool will again start receiving emissions.
 
 ## References
 
-https://github.com/aave/aave-v3-core/blob/master/techpaper/Aave_V3_Technical_Paper.pdf
-https://medium.com/gauntlet-networks/gauntlets-parameter-recommendation-methodology-8591478a0c1c
-https://docs.aave.com/risk/asset-risk/introduction
-https://docs.euler.finance/getting-started/white-paper#permissionless-listing
-https://compound.finance/docs/ctokens
-https://github.com/aave/aave-protocol/blob/master/docs/Aave_Protocol_Whitepaper_v1_0.pdf
+[1] https://github.com/aave/aave-v3-core/blob/master/techpaper/Aave_V3_Technical_Paper.pdf \
+[2] https://medium.com/gauntlet-networks/gauntlets-parameter-recommendation-methodology-8591478a0c1c \
+[3] https://docs.aave.com/risk/asset-risk/introduction \
+[4] https://docs.euler.finance/getting-started/white-paper#permissionless-listing \
+[5] https://compound.finance/docs/ctokens \
+[6] https://github.com/aave/aave-protocol/blob/master/docs/Aave_Protocol_Whitepaper_v1_0.pdf
