@@ -1,5 +1,17 @@
 # Blend Whitepaper
 
+- [Abstract](#abstract)
+- [Introduction](#introduction)
+- [Protocol Specification](#protocol-specification)
+    - [Isolated Lending Pools](#isolated-lending-pools)
+    - [Backstop Module](#backstop-module)
+    - [Lending and Borrowing](#lending-and-borrowing)
+    - [Interest Rates](#interest-rates)
+    - [Liquidations](#liquidations)
+- [Governance and Decentralization](#governance-and-decentralization)
+- [References](#references)
+
+
 ## Abstract
 
 This paper introduces a universal liquidity protocol primitive, Blend. A liquidity protocol primitive enables the permissionless creation of lending pools to quickly respond to emerging market needs. Applications, industries, and users can utilize this primitive to create isolated lending pools that best serve their niche. Blend is an ungoverned, modular, liquidity protocol primitive that does not compromise on security or capital efficiency.
