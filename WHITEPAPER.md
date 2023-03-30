@@ -191,7 +191,7 @@ However, the protocol imposes the following requirements on the liquidation crea
 
 2. If all user liabilities are not being repaid, the value of all liabilities repaid must be greater than 90% of the _Target Liquidation Amount_ to increase the likelihood the liquidation removes all excessively borrowed funds.
 
-3. The value of all collateral sold must be within 1x to 2x _Target Liquidation Amount_ unless all of the user's collateral is being sold to ensure the gradual dutch auction mechanism can find a valid price.
+3. The value of all collateral sold must be within 125% to 250% of _Target Liquidation Amount_ unless all of the user's collateral is being sold to ensure the gradual dutch auction mechanism can find a valid price.
 
 The _Target Liquidation Amount_ ($TLA$) defines an appropriate volume of liabilities to liquidate based on a liquidation premium, $p$, the collateral being sold, and the liabilities being purchased by the protocol. The $TLA$ aims for the user being liquidated to end up 3% over collateralized according to the protocol. It is calculated by:
 
