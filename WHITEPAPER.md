@@ -3,14 +3,13 @@
 - [Abstract](#abstract)
 - [Introduction](#introduction)
 - [Protocol Specification](#protocol-specification)
-    - [Isolated Lending Pools](#isolated-lending-pools)
-    - [Backstop Module](#backstop-module)
-    - [Lending and Borrowing](#lending-and-borrowing)
-    - [Interest Rates](#interest-rates)
-    - [Liquidations](#liquidations)
+  - [Isolated Lending Pools](#isolated-lending-pools)
+  - [Backstop Module](#backstop-module)
+  - [Lending and Borrowing](#lending-and-borrowing)
+  - [Interest Rates](#interest-rates)
+  - [Liquidations](#liquidations)
 - [Governance and Decentralization](#governance-and-decentralization)
 - [References](#references)
-
 
 ## Abstract
 
@@ -288,19 +287,19 @@ Due to the immutable nature of standard isolated lending pools, if new parameter
 
 ### BLND Emissions
 
-BLND tokens are emitted by the protocol to users. An emissions contract controls all protocol emissions, and the backstop module determines how they get distributed. In total, the protocol emits 500,000 BLND tokens weekly. The tokens are distributed to two types of users: backstop depositors and isolated pool borrowers.
+BLND tokens are emitted by the protocol to users. An emissions contract controls all protocol emissions, and the backstop module determines how they get distributed. In total, the protocol emits 1 BLND token per second. The tokens are distributed to two types of users: backstop depositors and lending pool users.
 
 #### Backstop Depositor Emissions
 
 Users who deposit BLND:USDC LP tokens into the backstop module are eligible to receive a share of 70% of the total BLND emissions. All BLND:USDC LP token deposits are eligible for emissions regardless of the isolated pool the token is deposited in or the withdrawal queue status. Each BLND:USDC LP token deposit receives emissions proportional to the total BLND:USDC LP tokens deposited by all users in the backstop module.
 
-#### Isolated Pool Borrower Emissions
+#### Isolated Pool Emissions
 
-Users who borrow from active Isolated Pools are eligible to receive a share of 30% of the total BLND emissions. The backstop module splits the share of weekly emissions among these pools proportionally to their backstop sizes. From there, pools split their emission allowance to all borrowers based on the assets emission rate. When these emissions are claimed, they are deposited into the backstop module of the pool the user was borrowing from.
+Users who lend to or borrow from active Isolated Pools are eligible to receive a share of 30% of the total BLND emissions, depending on how the pool is configured. The backstop module splits the share of weekly emissions among these pools proportionally to their backstop sizes. From there, pools split their emission allowance to either borrowers or lenders based on the asset's emission rate. When these emissions are claimed, they are deposited into the backstop module of the pool the user was borrowing from.
 
 #### Emissions as Balancing Force
 
-The protocol sending emissions to pool borrowers creates a necessary correlation between the pool’s backstop size and the pool’s total value locked (TVL). If the pool’s backstop module size outpaces the pool’s TVL, more emissions will be directed towards the borrowers of the pool. This incentivizes more borrowing, and, by effect, more lending, which increases the pool’s TVL. If the pool’s TVL outpaces the pool’s backstop module, more interest is generated for backstop module depositors. This incentivizes more deposits into the pool’s backstop module, increasing its size. As a result of these incentive mechanisms, a pool’s backstop module size and its TVL remain correlated regardless of fluctuations, protecting lender funds.
+Distributing emissions to lending pools creates a necessary correlation between the pool’s backstop size and the pool’s total value locked (TVL). If the pool’s backstop module size outpaces the pool’s TVL, more emissions will be directed to the borrowers and lenders in the pool. This incentivizes more pool activity, which increases the pool’s TVL. If the pool’s TVL outpaces the pool’s backstop module, more interest is generated for backstop module depositors. This incentivizes more deposits into the pool’s backstop module, increasing its size. As a result of these incentive mechanisms, a pool’s backstop module size and its TVL remain correlated, protecting lender funds.
 
 #### Emission Migration
 
