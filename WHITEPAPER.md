@@ -55,11 +55,11 @@ The backstop module is a pool of funds that acts as first-loss capital for each 
 
 #### Depositing and Withdrawing Funds
 
-Users can deposit BLND or BLND:USDC liquidity pool tokens into a backstop module for an isolated lending pool. They can withdraw their deposits at any time. However, initiating a withdrawal places the funds into a withdrawal queue, where they remain for 30 days. After the queue expires, users can withdraw their funds as long as the backstop module has no remaining bad debt. The queue period ensures the backstop module can effectively perform its function as lender insurance.
+Users deposit 80/20 weighted BLND:USDC liquidity pool tokens into a backstop module for an isolated lending pool. BLND being 80% of the pool's weight, and USDC being 20. They can withdraw their deposits at any time. However, initiating a withdrawal places the funds into a withdrawal queue, where they remain for 30 days. After the queue expires, users can withdraw their funds as long as the backstop module has no remaining bad debt. The queue period ensures the backstop module can effectively perform its function as lender insurance.
 
 #### Lending Pool Interest Sharing
 
-In exchange for insuring pools, backstop module depositors receive a portion of the interest paid by pool borrowers unless their deposit is currently queued for withdrawal. The percent of borrower interest paid to the backstop module depends on the BackstopTakeRate parameter, which is set on pool creation and validated such that it is set within [0.05, 0.7]. The portion of interest paid to backstop module depositors should be set higher for high-risk pools and lower for low-risk pools, reflecting their differing insurance requirements.
+In exchange for insuring pools, backstop module depositors receive a portion of the interest paid by pool borrowers unless their deposit is currently queued for withdrawal. The percent of borrower interest paid to the backstop module depends on the BackstopTakeRate parameter, which is set on pool creation and validated such that the backstop cannot capture more than 100% of interest. The portion of interest paid to backstop module depositors should be set higher for high-risk pools and lower for low-risk pools, reflecting their differing insurance requirements.
 
 #### Covering Bad Debt
 
@@ -195,7 +195,7 @@ However, the protocol imposes the following requirements on the liquidation crea
 The _Target Liquidation Amount_ ($TLA$) defines an appropriate volume of liabilities to liquidate based on a liquidation premium, $p$, the collateral being sold, and the liabilities being purchased by the protocol. The $TLA$ aims for the user being liquidated to end up 3% over collateralized according to the protocol. It is calculated by:
 
 $$
-p = TBD
+p = \frac{1-\overline{C_f}*\overline{L_f}}{2}+1
 $$
 
 $$
@@ -279,7 +279,23 @@ In the case of owned pools, the pool owner can set their pool to on ice or froze
 
 #### Backstop Threshold
 
-The backstop deposit threshold required to activate pools is 1 million BLND tokens. BLND:USDC liquidity pool token deposits count as the number of BLND tokens within them toward this threshold.
+The backstop deposit threshold required to activate pools is a product constant ($PC$) value of 200,000 for the BLND:USDC liquidity pool token deposits. This means that, when intut into the weighted liquidity pool product constant formula, the underlying USDC and BLND token amounts represented by USDC:BLND liquidity pool token deposits must have a product constant of 200,000.
+
+The constant product equation for 80/20 weighted liquidity pools is as follows:
+
+$$
+\tag{10}
+PC=A^{0.8} * B^{0.2}
+$$
+
+$$
+\begin{align*}
+    \text{where}\\
+    &PC=\text{Product Constant Value}\\
+    &A=\text{Amount of token A (BLND)}\\
+    &B=\text{Amount of token B (USDC)}\\
+\end{align*}
+$$
 
 #### Pool Migration
 
